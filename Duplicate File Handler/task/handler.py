@@ -14,6 +14,8 @@ print("Enter file format:")
 file_format = input().lower()
 
 files_list = []
+dupe_list = []
+free_space = 0
 for root, dirs, files in os.walk(args.path):
     files_list.extend([(os.path.join(root, file),
                         os.path.getsize(os.path.join(root, file)))
@@ -53,11 +55,12 @@ while check_dupes not in ["yes", "no"]:
     print()
 if check_dupes == "no":
     exit()
-    
+
 counter = 1
 for sk in size_keys:
     hash_dict = {}
     hash_set = set()
+
     print(f"{sk} bytes")
     for v in size_dict[sk]:
         with open(v, "rb") as f:
@@ -69,6 +72,32 @@ for sk in size_keys:
                 print(f"Hash: {hash_value}")
                 for filepath in hash_dict[hash_value]:
                     print(f"{counter}. {filepath}")
+                    dupe_list.append([filepath, sk])
                     counter += 1
                 hash_set.add(hash_value)
     print()
+
+print("Delete files?")
+delete_files = input()
+while delete_files not in ["yes", "no"]:
+    print("Wrong option")
+    delete_files = input()
+    print()
+if delete_files == "no":
+    exit()
+
+print("Enter file numbers to delete:")
+file_numbers = [x for x in input().split()]
+while len(file_numbers) < 1 or any(not x.isdigit() for x in file_numbers):
+    print("wrong format")
+    file_numbers = [x for x in input().split()]
+while max(int(x) for x in file_numbers) > (len(dupe_list)):
+    print("wrong format")
+    file_numbers = [x for x in input().split()]
+
+for file_num in file_numbers:
+    full_path = dupe_list[int(file_num) - 1][0]
+    os.remove(full_path)
+    free_space += dupe_list[int(file_num) - 1][1]
+
+print(f"Total freed up space: {free_space} bytes")
